@@ -12,6 +12,7 @@ export default function ArticleDisplay() {
     addMessage,
     appendLastAssistant,
     clearMessages,
+    flushMessages,
     isGenerating,
     setIsGenerating,
     addHistory,
@@ -19,12 +20,34 @@ export default function ArticleDisplay() {
 
   const abortRef = useRef<AbortController | null>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
+  const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [copied, setCopied] = useState(false)
   const [followUp, setFollowUp] = useState('')
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // 生成中每3秒自动持久化一次，防止意外丢失
+  useEffect(() => {
+    if (isGenerating) {
+      flushTimerRef.current = setInterval(() => {
+        flushMessages()
+      }, 3000)
+    } else {
+      if (flushTimerRef.current) {
+        clearInterval(flushTimerRef.current)
+        flushTimerRef.current = null
+      }
+      flushMessages()
+    }
+    return () => {
+      if (flushTimerRef.current) {
+        clearInterval(flushTimerRef.current)
+        flushTimerRef.current = null
+      }
+    }
+  }, [isGenerating, flushMessages])
 
   const charCount = useMemo(() => {
     return messages
@@ -131,6 +154,7 @@ export default function ArticleDisplay() {
   const handleStop = () => {
     abortRef.current?.abort()
     setIsGenerating(false)
+    flushMessages()
   }
 
   const handleCopy = async () => {

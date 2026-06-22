@@ -26,6 +26,7 @@ interface AppStore {
   addMessage: (msg: ChatMessage) => void
   appendLastAssistant: (chunk: string) => void
   clearMessages: () => void
+  flushMessages: () => void
   // 生成状态
   isGenerating: boolean
   setIsGenerating: (val: boolean) => void
@@ -51,33 +52,65 @@ const saveHistory = (items: HistoryItem[]) => {
   localStorage.setItem('impromptu_history', JSON.stringify(items))
 }
 
+const loadMessages = (): ChatMessage[] => {
+  try {
+    const data = localStorage.getItem('impromptu_messages')
+    return data ? JSON.parse(data) : []
+  } catch {
+    return []
+  }
+}
+
+const saveMessages = (msgs: ChatMessage[]) => {
+  localStorage.setItem('impromptu_messages', JSON.stringify(msgs))
+}
+
 export const useAppStore = create<AppStore>((set, get) => ({
   apiKey: localStorage.getItem('impromptu_apikey') || '',
   setApiKey: (key: string) => {
     localStorage.setItem('impromptu_apikey', key)
     set({ apiKey: key })
   },
-  currentTopic: '',
-  setCurrentTopic: (topic: string) => set({ currentTopic: topic }),
-  currentStyle: 'podcast',
-  setCurrentStyle: (style: string) => set({ currentStyle: style }),
+  currentTopic: localStorage.getItem('impromptu_topic') || '',
+  setCurrentTopic: (topic: string) => {
+    localStorage.setItem('impromptu_topic', topic)
+    set({ currentTopic: topic })
+  },
+  currentStyle: localStorage.getItem('impromptu_style') || 'podcast',
+  setCurrentStyle: (style: string) => {
+    localStorage.setItem('impromptu_style', style)
+    set({ currentStyle: style })
+  },
   // 多轮对话
-  messages: [],
-  setMessages: (msgs: ChatMessage[]) => set({ messages: msgs }),
-  addMessage: (msg: ChatMessage) =>
-    set((state) => ({ messages: [...state.messages, msg] })),
-  appendLastAssistant: (chunk: string) =>
-    set((state) => {
-      const msgs = [...state.messages]
-      if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') {
-        msgs[msgs.length - 1] = {
-          ...msgs[msgs.length - 1],
-          content: msgs[msgs.length - 1].content + chunk,
-        }
+  messages: loadMessages(),
+  setMessages: (msgs: ChatMessage[]) => {
+    saveMessages(msgs)
+    set({ messages: msgs })
+  },
+  addMessage: (msg: ChatMessage) => {
+    const newMsgs = [...get().messages, msg]
+    saveMessages(newMsgs)
+    set({ messages: newMsgs })
+  },
+  // 流式追加——只更新内存，不写localStorage（避免卡顿）
+  appendLastAssistant: (chunk: string) => {
+    const msgs = [...get().messages]
+    if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') {
+      msgs[msgs.length - 1] = {
+        ...msgs[msgs.length - 1],
+        content: msgs[msgs.length - 1].content + chunk,
       }
-      return { messages: msgs }
-    }),
-  clearMessages: () => set({ messages: [] }),
+    }
+    set({ messages: msgs })
+  },
+  // 流结束后调用，把内存中的消息持久化到localStorage
+  flushMessages: () => {
+    saveMessages(get().messages)
+  },
+  clearMessages: () => {
+    saveMessages([])
+    set({ messages: [] })
+  },
   // 生成状态
   isGenerating: false,
   setIsGenerating: (val: boolean) => set({ isGenerating: val }),
