@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { KeyRound, Eye, EyeOff, Check } from 'lucide-react'
+import { KeyRound, Eye, EyeOff, Check, ExternalLink } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 
 export default function ApiKeyInput() {
@@ -15,10 +15,21 @@ export default function ApiKeyInput() {
 
   return (
     <div className="card p-4 md:p-5 max-w-xl mx-auto w-full">
-      <label className="label-tag">
-        <KeyRound className="w-3.5 h-3.5" />
-        <span>API Key</span>
-      </label>
+      <div className="flex items-center justify-between mb-3">
+        <label className="label-tag !mb-0">
+          <KeyRound className="w-3.5 h-3.5" />
+          <span>API Key</span>
+        </label>
+        <a
+          href="https://open.bigmodel.cn/usercenter/apikey"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 text-[10px] font-mono text-[var(--accent)] hover:text-[var(--accent-secondary)] transition-colors tracking-wider"
+        >
+          <ExternalLink className="w-3 h-3" />
+          获取 Key
+        </a>
+      </div>
       <div className="flex gap-2">
         <div className="relative flex-1">
           <input
