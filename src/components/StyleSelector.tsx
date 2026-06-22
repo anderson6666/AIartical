@@ -15,8 +15,10 @@ export default function StyleSelector() {
 
   return (
     <div className="max-w-xl mx-auto w-full">
-      <p className="text-sm text-[var(--text-secondary)] mb-3 px-1">选择演讲风格</p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <p className="label-tag px-1">
+        <span>风格</span>
+      </p>
+      <div className="grid grid-cols-5 gap-2 md:gap-3">
         {STYLE_KEYS.map((key) => {
           const config = STYLE_CONFIG[key]
           const IconComp = iconMap[config.icon]
@@ -26,14 +28,17 @@ export default function StyleSelector() {
             <button
               key={key}
               onClick={() => setCurrentStyle(key)}
-              className={`style-card ${isActive ? 'active' : ''}`}
+              className={`style-card !p-3 md:!p-4 ${isActive ? 'active' : ''}`}
             >
-              {IconComp && <IconComp className={`w-5 h-5 mx-auto mb-2 ${isActive ? 'text-[var(--accent)]' : 'text-[var(--text-secondary)]'}`} />}
-              <span className={`text-sm font-medium block ${isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
+              {IconComp && (
+                <IconComp className={`w-4 h-4 md:w-5 md:h-5 mx-auto mb-1.5 md:mb-2 transition-colors ${
+                  isActive ? 'text-[var(--accent)]' : 'text-[var(--text-secondary)]'
+                }`} />
+              )}
+              <span className={`text-xs md:text-sm font-medium block ${
+                isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'
+              }`}>
                 {config.label}
-              </span>
-              <span className="text-xs text-[var(--text-secondary)] opacity-60 mt-1 block hidden sm:block">
-                {config.desc}
               </span>
             </button>
           )

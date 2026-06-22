@@ -22,24 +22,20 @@ export default function ArticleDisplay() {
   const [copied, setCopied] = useState(false)
   const [followUp, setFollowUp] = useState('')
 
-  // 自动滚动到底部
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // 真实字数统计：只统计assistant消息中有内容的
   const charCount = useMemo(() => {
     return messages
       .filter((m) => m.role === 'assistant' && m.content.length > 0)
       .reduce((sum, m) => sum + m.content.length, 0)
   }, [messages])
 
-  // 真实轮次：只统计有内容的user消息
   const roundCount = useMemo(() => {
     return messages.filter((m) => m.role === 'user' && m.content.length > 0).length
   }, [messages])
 
-  // 拼接所有助手消息为完整文本（用于复制和保存历史）
   const fullAssistantText = useMemo(() => {
     return messages
       .filter((m) => m.role === 'assistant' && m.content.length > 0)
@@ -192,32 +188,32 @@ export default function ArticleDisplay() {
 
       {/* 对话区域 */}
       {hasConversation && (
-        <div className="card animate-fade-in-up flex flex-col" style={{ minHeight: '300px' }}>
+        <div className="card animate-fade-in-up flex flex-col overflow-hidden" style={{ minHeight: '300px' }}>
           {/* 头部 */}
           <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)]">
-            <div className="flex items-center gap-3">
-              <span className="font-display text-sm font-bold truncate max-w-[200px]">{currentTopic}</span>
-              <span className="text-xs text-[var(--text-secondary)] opacity-60 shrink-0">
-                第{roundCount}轮
-              </span>
-              {charCount > 0 && (
-                <span className="text-xs text-[var(--text-secondary)] opacity-60 shrink-0">
-                  {charCount}字
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="font-display text-sm font-bold truncate">{currentTopic}</span>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[10px] font-mono text-[var(--accent)] bg-[var(--accent-dim)] px-1.5 py-0.5 rounded">
+                  R{roundCount}
                 </span>
-              )}
+                {charCount > 0 && (
+                  <span className="text-[10px] font-mono text-[var(--accent-secondary)] bg-[var(--accent2-glow)] px-1.5 py-0.5 rounded">
+                    {charCount}字
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="flex gap-1">
+            <div className="flex gap-1 shrink-0">
               <button
                 onClick={handleCopy}
                 className="p-2 rounded-lg hover:bg-[var(--bg-card-hover)] transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 title="复制全文"
               >
-                {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                {copied ? <Check className="w-4 h-4 text-[var(--accent-secondary)]" /> : <Copy className="w-4 h-4" />}
               </button>
               <button
-                onClick={() => {
-                  clearMessages()
-                }}
+                onClick={() => clearMessages()}
                 className="p-2 rounded-lg hover:bg-red-900/20 text-[var(--text-secondary)] hover:text-red-400 transition-colors"
                 title="清空对话"
               >
@@ -227,12 +223,12 @@ export default function ArticleDisplay() {
           </div>
 
           {/* 消息列表 */}
-          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 max-h-[520px]">
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5 max-h-[520px]">
             {messages.map((msg, idx) => {
-              // 不显示空的assistant占位消息
               if (msg.role === 'assistant' && msg.content.length === 0 && idx === messages.length - 1 && isGenerating) {
                 return (
-                  <div key={idx} className="text-xs text-[var(--text-secondary)] italic">
+                  <div key={idx} className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
                     正在组织语言...
                   </div>
                 )
@@ -244,11 +240,11 @@ export default function ArticleDisplay() {
               return (
                 <div key={idx} className={`${msg.role === 'user' ? 'flex justify-end' : ''}`}>
                   {msg.role === 'user' ? (
-                    <div className="bg-[var(--accent-dim)] border border-[var(--accent)]/20 rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[80%] text-sm">
+                    <div className="bg-[var(--accent-dim)] border border-[var(--border-accent)] rounded-2xl rounded-br-md px-4 py-2.5 max-w-[80%] text-sm text-[var(--text-primary)]">
                       {msg.content}
                     </div>
                   ) : (
-                    <div className={`text-sm md:text-base leading-loose whitespace-pre-wrap text-[var(--text-primary)] ${
+                    <div className={`text-sm md:text-base leading-[1.9] whitespace-pre-wrap text-[var(--text-primary)] ${
                       idx === messages.length - 1 && isGenerating ? 'typewriter-cursor' : ''
                     }`}>
                       {msg.content}
@@ -261,19 +257,17 @@ export default function ArticleDisplay() {
           </div>
 
           {/* 底部栏 */}
-          {charCount > 0 && (
+          {charCount > 0 && !isGenerating && (
             <div className="px-5 py-2 border-t border-[var(--border)] flex justify-between items-center">
-              <span className="text-xs text-[var(--text-secondary)] opacity-50">
-                共 {charCount} 字
+              <span className="text-[10px] font-mono text-[var(--text-secondary)] opacity-40">
+                {charCount} CHARS
               </span>
-              {!isGenerating && (
-                <button
-                  onClick={handleStart}
-                  className="text-xs text-[var(--accent)] hover:underline"
-                >
-                  重新开始
-                </button>
-              )}
+              <button
+                onClick={handleStart}
+                className="text-[10px] font-mono text-[var(--accent)] hover:underline tracking-wider"
+              >
+                RESTART
+              </button>
             </div>
           )}
 
@@ -287,7 +281,7 @@ export default function ArticleDisplay() {
                 placeholder={isGenerating ? '等它说完...' : '继续聊点什么...'}
                 disabled={isGenerating}
                 rows={1}
-                className="flex-1 bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-secondary)] resize-none focus:outline-none focus:border-[var(--accent)] transition-colors disabled:opacity-40"
+                className="input-field flex-1"
               />
               <button
                 onClick={handleFollowUp}
@@ -307,13 +301,13 @@ export default function ArticleDisplay() {
 
       {/* 提示信息 */}
       {!apiKey && (
-        <p className="text-center text-xs text-[var(--text-secondary)] opacity-50">
-          请先输入 API Key 才能使用
+        <p className="text-center text-xs text-[var(--text-secondary)] opacity-40 font-mono">
+          API KEY REQUIRED
         </p>
       )}
       {apiKey && !currentTopic.trim() && !hasConversation && (
-        <p className="text-center text-xs text-[var(--text-secondary)] opacity-50">
-          输入一个话题，然后点击按钮开始
+        <p className="text-center text-xs text-[var(--text-secondary)] opacity-40 font-mono">
+          ENTER A TOPIC TO START
         </p>
       )}
     </div>
