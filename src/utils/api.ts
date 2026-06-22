@@ -28,6 +28,7 @@ export async function streamGenerate(
           { role: 'user', content: userPrompt },
         ],
         stream: true,
+        max_tokens: 4096,
         temperature: 1.0,
         top_p: 0.9,
       }),
