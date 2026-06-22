@@ -54,7 +54,7 @@ export default function ApiKeyInput() {
           )}
         </label>
         <a
-          href="https://open.bigmodel.cn/usercenter/apikey"
+          href="https://open.bigmodel.cn/apikey/platform"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1 text-[10px] font-mono text-[var(--accent)] hover:text-[var(--accent-secondary)] transition-colors tracking-wider"
