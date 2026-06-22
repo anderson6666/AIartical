@@ -204,7 +204,7 @@ export default function ArticleDisplay() {
           ) : (
             <>
               <Mic className="w-4 h-4" />
-              开始即兴说
+              开始 Solo Chat
             </>
           )}
         </button>

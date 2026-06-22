@@ -41,7 +41,7 @@ interface AppStore {
 
 const loadHistory = (): HistoryItem[] => {
   try {
-    const data = localStorage.getItem('impromptu_history')
+    const data = localStorage.getItem('solochat_history')
     return data ? JSON.parse(data) : []
   } catch {
     return []
@@ -49,12 +49,12 @@ const loadHistory = (): HistoryItem[] => {
 }
 
 const saveHistory = (items: HistoryItem[]) => {
-  localStorage.setItem('impromptu_history', JSON.stringify(items))
+  localStorage.setItem('solochat_history', JSON.stringify(items))
 }
 
 const loadMessages = (): ChatMessage[] => {
   try {
-    const data = localStorage.getItem('impromptu_messages')
+    const data = localStorage.getItem('solochat_messages')
     return data ? JSON.parse(data) : []
   } catch {
     return []
@@ -62,23 +62,23 @@ const loadMessages = (): ChatMessage[] => {
 }
 
 const saveMessages = (msgs: ChatMessage[]) => {
-  localStorage.setItem('impromptu_messages', JSON.stringify(msgs))
+  localStorage.setItem('solochat_messages', JSON.stringify(msgs))
 }
 
 export const useAppStore = create<AppStore>((set, get) => ({
-  apiKey: localStorage.getItem('impromptu_apikey') || '',
+  apiKey: localStorage.getItem('solochat_apikey') || '',
   setApiKey: (key: string) => {
-    localStorage.setItem('impromptu_apikey', key)
+    localStorage.setItem('solochat_apikey', key)
     set({ apiKey: key })
   },
-  currentTopic: localStorage.getItem('impromptu_topic') || '',
+  currentTopic: localStorage.getItem('solochat_topic') || '',
   setCurrentTopic: (topic: string) => {
-    localStorage.setItem('impromptu_topic', topic)
+    localStorage.setItem('solochat_topic', topic)
     set({ currentTopic: topic })
   },
-  currentStyle: localStorage.getItem('impromptu_style') || 'podcast',
+  currentStyle: localStorage.getItem('solochat_style') || 'podcast',
   setCurrentStyle: (style: string) => {
-    localStorage.setItem('impromptu_style', style)
+    localStorage.setItem('solochat_style', style)
     set({ currentStyle: style })
   },
   // 多轮对话

@@ -17,9 +17,9 @@ export default function Home() {
         <div className="max-w-xl mx-auto px-4 h-11 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded bg-gradient-to-br from-[#ff6b35] to-[#e85d2a] flex items-center justify-center">
-              <span className="text-[8px] font-black text-[#08080c]">I</span>
+              <span className="text-[8px] font-black text-[#08080c]">S</span>
             </div>
-            <span className="font-display text-sm font-bold tracking-wide">即兴说</span>
+            <span className="font-display text-sm font-bold tracking-wide">Solo Chat</span>
           </div>
           <button
             onClick={() => setShowHistory(true)}
@@ -47,7 +47,7 @@ export default function Home() {
       {/* 底部 */}
       <footer className="text-center py-6 space-y-1">
         <p className="text-[10px] text-[var(--text-secondary)] opacity-30 font-mono tracking-wider">
-          IMPROMPTU · GLM-4-FLASH
+          SOLO CHAT · GLM-4-FLASH
         </p>
       </footer>
 

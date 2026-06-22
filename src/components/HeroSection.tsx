@@ -12,7 +12,7 @@ export default function HeroSection() {
         </div>
       </div>
       <h1 className="font-display text-5xl md:text-7xl font-black tracking-tight mb-3">
-        即兴说
+        Solo Chat
       </h1>
       <p className="text-[var(--text-secondary)] text-sm md:text-base max-w-sm mx-auto leading-relaxed">
         让AI像人一样说话，像即兴演讲一样自然
@@ -20,7 +20,7 @@ export default function HeroSection() {
       <div className="mt-3 flex items-center justify-center gap-2">
         <span className="inline-block w-8 h-px bg-gradient-to-r from-transparent to-[var(--accent)]/40" />
         <span className="text-[10px] text-[var(--text-secondary)] opacity-40 tracking-[0.3em] uppercase font-mono">
-          Impromptu
+          Solo Chat
         </span>
         <span className="inline-block w-8 h-px bg-gradient-to-l from-transparent to-[var(--accent)]/40" />
       </div>
