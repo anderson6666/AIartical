@@ -8,6 +8,11 @@ export interface HistoryItem {
   createdAt: number
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 interface AppStore {
   apiKey: string
   setApiKey: (key: string) => void
@@ -15,11 +20,16 @@ interface AppStore {
   setCurrentTopic: (topic: string) => void
   currentStyle: string
   setCurrentStyle: (style: string) => void
-  generatedContent: string
-  setGeneratedContent: (content: string) => void
-  appendContent: (chunk: string) => void
+  // 多轮对话
+  messages: ChatMessage[]
+  setMessages: (msgs: ChatMessage[]) => void
+  addMessage: (msg: ChatMessage) => void
+  appendLastAssistant: (chunk: string) => void
+  clearMessages: () => void
+  // 生成状态
   isGenerating: boolean
   setIsGenerating: (val: boolean) => void
+  // 历史
   history: HistoryItem[]
   addHistory: (item: HistoryItem) => void
   removeHistory: (id: string) => void
@@ -51,12 +61,27 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setCurrentTopic: (topic: string) => set({ currentTopic: topic }),
   currentStyle: 'podcast',
   setCurrentStyle: (style: string) => set({ currentStyle: style }),
-  generatedContent: '',
-  setGeneratedContent: (content: string) => set({ generatedContent: content }),
-  appendContent: (chunk: string) =>
-    set((state) => ({ generatedContent: state.generatedContent + chunk })),
+  // 多轮对话
+  messages: [],
+  setMessages: (msgs: ChatMessage[]) => set({ messages: msgs }),
+  addMessage: (msg: ChatMessage) =>
+    set((state) => ({ messages: [...state.messages, msg] })),
+  appendLastAssistant: (chunk: string) =>
+    set((state) => {
+      const msgs = [...state.messages]
+      if (msgs.length > 0 && msgs[msgs.length - 1].role === 'assistant') {
+        msgs[msgs.length - 1] = {
+          ...msgs[msgs.length - 1],
+          content: msgs[msgs.length - 1].content + chunk,
+        }
+      }
+      return { messages: msgs }
+    }),
+  clearMessages: () => set({ messages: [] }),
+  // 生成状态
   isGenerating: false,
   setIsGenerating: (val: boolean) => set({ isGenerating: val }),
+  // 历史
   history: loadHistory(),
   addHistory: (item: HistoryItem) => {
     const newHistory = [item, ...get().history].slice(0, 50)

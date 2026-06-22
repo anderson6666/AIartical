@@ -1,4 +1,4 @@
-import { useAppStore } from '@/store/useAppStore'
+import { useAppStore, type ChatMessage } from '@/store/useAppStore'
 import { History, X, Trash2, Clock } from 'lucide-react'
 
 function timeAgo(timestamp: number): string {
@@ -22,10 +22,22 @@ const styleLabelMap: Record<string, string> = {
 }
 
 export default function HistoryPanel() {
-  const { history, showHistory, setShowHistory, removeHistory, clearHistory, setGeneratedContent } =
+  const { history, showHistory, setShowHistory, removeHistory, clearHistory, setMessages, setCurrentTopic, setCurrentStyle } =
     useAppStore()
 
   if (!showHistory) return null
+
+  const handleLoadHistory = (item: { topic: string; style: string; content: string }) => {
+    setCurrentTopic(item.topic)
+    setCurrentStyle(item.style)
+    // 把历史内容加载为一条assistant消息
+    const msgs: ChatMessage[] = [
+      { role: 'user', content: item.topic },
+      { role: 'assistant', content: item.content },
+    ]
+    setMessages(msgs)
+    setShowHistory(false)
+  }
 
   return (
     <>
@@ -36,12 +48,10 @@ export default function HistoryPanel() {
           onClick={() => setShowHistory(false)}
         />
         <div className="absolute bottom-0 left-0 right-0 bg-[var(--bg-card)] rounded-t-2xl max-h-[70vh] overflow-hidden animate-fade-in-up">
-          {/* 拖动条 */}
           <div className="flex justify-center pt-2 pb-1">
             <div className="w-10 h-1 rounded-full bg-[var(--text-secondary)] opacity-30" />
           </div>
 
-          {/* 标题栏 */}
           <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)]">
             <div className="flex items-center gap-2 text-sm font-medium">
               <History className="w-4 h-4 text-[var(--accent)]" />
@@ -67,7 +77,6 @@ export default function HistoryPanel() {
             </div>
           </div>
 
-          {/* 列表 */}
           <div className="overflow-y-auto max-h-[calc(70vh-80px)] p-4 space-y-3">
             {history.length === 0 ? (
               <p className="text-center text-sm text-[var(--text-secondary)] py-8">
@@ -81,10 +90,7 @@ export default function HistoryPanel() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <button
-                      onClick={() => {
-                        setGeneratedContent(item.content)
-                        setShowHistory(false)
-                      }}
+                      onClick={() => handleLoadHistory(item)}
                       className="flex-1 text-left"
                     >
                       <p className="font-medium text-sm line-clamp-2">{item.topic}</p>
@@ -154,10 +160,7 @@ export default function HistoryPanel() {
                 <div
                   key={item.id}
                   className="card p-4 group hover:border-[var(--accent)]/30 transition-all cursor-pointer"
-                  onClick={() => {
-                    setGeneratedContent(item.content)
-                    setShowHistory(false)
-                  }}
+                  onClick={() => handleLoadHistory(item)}
                 >
                   <p className="font-medium text-sm line-clamp-2 mb-2">{item.topic}</p>
                   <div className="flex items-center justify-between">

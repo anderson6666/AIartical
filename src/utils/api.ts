@@ -1,18 +1,27 @@
-import { buildSystemPrompt, buildUserPrompt } from './prompt'
+import { buildSystemPrompt } from './prompt'
 
 const API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
 
+export interface ChatMessageApi {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+
 export async function streamGenerate(
   apiKey: string,
-  topic: string,
   style: string,
+  messages: ChatMessageApi[],
   onChunk: (text: string) => void,
   onDone: () => void,
   onError: (err: string) => void,
   signal?: AbortSignal,
 ) {
   const systemPrompt = buildSystemPrompt(style)
-  const userPrompt = buildUserPrompt(topic)
+
+  const apiMessages: ChatMessageApi[] = [
+    { role: 'system', content: systemPrompt },
+    ...messages,
+  ]
 
   try {
     const response = await fetch(API_URL, {
@@ -23,12 +32,9 @@ export async function streamGenerate(
       },
       body: JSON.stringify({
         model: 'glm-4-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
+        messages: apiMessages,
         stream: true,
-        max_tokens: 4096,
+        max_tokens: 30000,
         temperature: 1.0,
         top_p: 0.9,
       }),
