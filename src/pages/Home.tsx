@@ -47,7 +47,7 @@ export default function Home() {
       {/* 底部 */}
       <footer className="text-center py-6 space-y-1">
         <p className="text-[10px] text-[var(--text-secondary)] opacity-30 font-mono tracking-wider">
-          SOLO CHAT · AGNES
+          SOLO CHAT · AGNES-2.0-FLASH
         </p>
       </footer>
 

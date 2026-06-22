@@ -1,6 +1,6 @@
 import { buildSystemPrompt } from './prompt'
 
-const API_URL = 'https://apihub.agnes-ai.com/v1/chat/completions'
+const API_URL = 'https://apihub.agnes-2.0-flash-ai.com/v1/chat/completions'
 
 export interface ChatMessageApi {
   role: 'system' | 'user' | 'assistant'
@@ -17,7 +17,7 @@ export async function verifyApiKey(apiKey: string): Promise<{ valid: boolean; me
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'agnes',
+        model: 'agnes-2.0-flash',
         messages: [{ role: 'user', content: 'hi' }],
         max_tokens: 1,
       }),
@@ -69,7 +69,7 @@ export async function streamGenerate(
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'agnes',
+        model: 'agnes-2.0-flash',
         messages: apiMessages,
         stream: true,
         max_tokens: 30000,
