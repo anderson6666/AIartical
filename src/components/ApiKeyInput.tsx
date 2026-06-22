@@ -54,7 +54,7 @@ export default function ApiKeyInput() {
           )}
         </label>
         <a
-          href="https://open.bigmodel.cn/apikey/platform"
+          href="https://platform.agnes-ai.com"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1 text-[10px] font-mono text-[var(--accent)] hover:text-[var(--accent-secondary)] transition-colors tracking-wider"
@@ -69,7 +69,7 @@ export default function ApiKeyInput() {
             type={showKey ? 'text' : 'password'}
             value={inputValue}
             onChange={(e) => handleChange(e.target.value)}
-            placeholder="输入你的智谱API Key..."
+            placeholder="输入你的Agnes API Key..."
             className={`input-field pr-10 ${
               verifyState === 'invalid' ? '!border-red-500/50 focus:!border-red-500 focus:!shadow-[0_0_0_3px_rgba(239,68,68,0.1)]' : ''
             } ${

@@ -1,6 +1,6 @@
 import { buildSystemPrompt } from './prompt'
 
-const API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
+const API_URL = 'https://apihub.agnes-ai.com/v1/chat/completions'
 
 export interface ChatMessageApi {
   role: 'system' | 'user' | 'assistant'
