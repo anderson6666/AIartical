@@ -1,6 +1,6 @@
 import { buildSystemPrompt } from './prompt'
 
-const API_URL = 'https://apihub.agnes-2.0-flash-ai.com/v1/chat/completions'
+const API_URL = 'https://apihub.agnes-ai.com/v1'
 
 export interface ChatMessageApi {
   role: 'system' | 'user' | 'assistant'
@@ -10,7 +10,7 @@ export interface ChatMessageApi {
 // 验证API Key是否可用——发一个最小请求
 export async function verifyApiKey(apiKey: string): Promise<{ valid: boolean; message: string }> {
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetch(`${API_URL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ export async function streamGenerate(
   ]
 
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetch(`${API_URL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
