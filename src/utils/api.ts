@@ -7,6 +7,44 @@ export interface ChatMessageApi {
   content: string
 }
 
+// 验证API Key是否可用——发一个最小请求
+export async function verifyApiKey(apiKey: string): Promise<{ valid: boolean; message: string }> {
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'glm-4-flash',
+        messages: [{ role: 'user', content: 'hi' }],
+        max_tokens: 1,
+      }),
+    })
+
+    if (response.ok) {
+      return { valid: true, message: '验证通过' }
+    }
+
+    const errText = await response.text()
+    let errMsg = `验证失败 (${response.status})`
+    try {
+      const errJson = JSON.parse(errText)
+      errMsg = errJson.error?.message || errMsg
+    } catch {
+      // ignore
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      return { valid: false, message: 'API Key 无效或已过期' }
+    }
+    return { valid: false, message: errMsg }
+  } catch (err) {
+    return { valid: false, message: '网络错误，请检查网络连接' }
+  }
+}
+
 export async function streamGenerate(
   apiKey: string,
   style: string,
