@@ -1,7 +1,7 @@
-import { useRef, useCallback, useEffect, useState } from 'react'
+import { useRef, useCallback, useEffect, useState, useMemo } from 'react'
 import { useAppStore, type ChatMessage } from '@/store/useAppStore'
 import { streamGenerate, type ChatMessageApi } from '@/utils/api'
-import { Mic, Square, Copy, Check, RotateCcw, Send, Trash2 } from 'lucide-react'
+import { Mic, Square, Copy, Check, Send, Trash2 } from 'lucide-react'
 
 export default function ArticleDisplay() {
   const {
@@ -27,15 +27,28 @@ export default function ArticleDisplay() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  // 真实字数统计：只统计assistant消息中有内容的
+  const charCount = useMemo(() => {
+    return messages
+      .filter((m) => m.role === 'assistant' && m.content.length > 0)
+      .reduce((sum, m) => sum + m.content.length, 0)
+  }, [messages])
+
+  // 真实轮次：只统计有内容的user消息
+  const roundCount = useMemo(() => {
+    return messages.filter((m) => m.role === 'user' && m.content.length > 0).length
+  }, [messages])
+
   // 拼接所有助手消息为完整文本（用于复制和保存历史）
-  const fullAssistantText = messages
-    .filter((m) => m.role === 'assistant')
-    .join('\n\n')
+  const fullAssistantText = useMemo(() => {
+    return messages
+      .filter((m) => m.role === 'assistant' && m.content.length > 0)
+      .join('\n\n')
+  }, [messages])
 
   const handleStart = useCallback(async () => {
     if (!apiKey || !currentTopic.trim()) return
 
-    // 清空之前的对话，开始新话题
     clearMessages()
     const userMsg: ChatMessage = { role: 'user', content: currentTopic.trim() }
     addMessage(userMsg)
@@ -55,7 +68,7 @@ export default function ArticleDisplay() {
         setIsGenerating(false)
         const allMsgs = useAppStore.getState().messages
         const assistantText = allMsgs
-          .filter((m) => m.role === 'assistant')
+          .filter((m) => m.role === 'assistant' && m.content.length > 0)
           .join('\n\n')
         if (assistantText) {
           addHistory({
@@ -85,10 +98,9 @@ export default function ArticleDisplay() {
     setIsGenerating(true)
     abortRef.current = new AbortController()
 
-    // 构建完整的对话历史发给API
     const allMsgs = useAppStore.getState().messages
     const apiMessages: ChatMessageApi[] = allMsgs
-      .filter((m) => m.content.length > 0) // 过滤掉空的assistant消息
+      .filter((m) => m.content.length > 0)
       .map((m) => ({ role: m.role, content: m.content }))
 
     streamGenerate(
@@ -98,10 +110,9 @@ export default function ArticleDisplay() {
       (chunk) => appendLastAssistant(chunk),
       () => {
         setIsGenerating(false)
-        // 更新历史
         const updatedMsgs = useAppStore.getState().messages
         const assistantText = updatedMsgs
-          .filter((m) => m.role === 'assistant')
+          .filter((m) => m.role === 'assistant' && m.content.length > 0)
           .join('\n\n')
         if (assistantText) {
           addHistory({
@@ -184,11 +195,16 @@ export default function ArticleDisplay() {
         <div className="card animate-fade-in-up flex flex-col" style={{ minHeight: '300px' }}>
           {/* 头部 */}
           <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)]">
-            <div className="flex items-center gap-2">
-              <span className="font-display text-sm font-bold">{currentTopic}</span>
-              <span className="text-xs text-[var(--text-secondary)] opacity-60">
-                {messages.filter((m) => m.role === 'user').length} 轮对话
+            <div className="flex items-center gap-3">
+              <span className="font-display text-sm font-bold truncate max-w-[200px]">{currentTopic}</span>
+              <span className="text-xs text-[var(--text-secondary)] opacity-60 shrink-0">
+                第{roundCount}轮
               </span>
+              {charCount > 0 && (
+                <span className="text-xs text-[var(--text-secondary)] opacity-60 shrink-0">
+                  {charCount}字
+                </span>
+              )}
             </div>
             <div className="flex gap-1">
               <button
@@ -212,38 +228,52 @@ export default function ArticleDisplay() {
 
           {/* 消息列表 */}
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 max-h-[520px]">
-            {messages.map((msg, idx) => (
-              <div key={idx} className={`${msg.role === 'user' ? 'flex justify-end' : ''}`}>
-                {msg.role === 'user' ? (
-                  <div className="bg-[var(--accent-dim)] border border-[var(--accent)]/20 rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[80%] text-sm">
-                    {msg.content}
+            {messages.map((msg, idx) => {
+              // 不显示空的assistant占位消息
+              if (msg.role === 'assistant' && msg.content.length === 0 && idx === messages.length - 1 && isGenerating) {
+                return (
+                  <div key={idx} className="text-xs text-[var(--text-secondary)] italic">
+                    正在组织语言...
                   </div>
-                ) : (
-                  <div className={`text-sm md:text-base leading-loose whitespace-pre-wrap text-[var(--text-primary)] ${
-                    idx === messages.length - 1 && isGenerating && !msg.content ? '' : ''
-                  } ${idx === messages.length - 1 && isGenerating ? 'typewriter-cursor' : ''}`}>
-                    {msg.content || (
-                      <span className="text-[var(--text-secondary)] italic text-xs">正在组织语言...</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
+                )
+              }
+              if (msg.role === 'assistant' && msg.content.length === 0) {
+                return null
+              }
+
+              return (
+                <div key={idx} className={`${msg.role === 'user' ? 'flex justify-end' : ''}`}>
+                  {msg.role === 'user' ? (
+                    <div className="bg-[var(--accent-dim)] border border-[var(--accent)]/20 rounded-2xl rounded-br-sm px-4 py-2.5 max-w-[80%] text-sm">
+                      {msg.content}
+                    </div>
+                  ) : (
+                    <div className={`text-sm md:text-base leading-loose whitespace-pre-wrap text-[var(--text-primary)] ${
+                      idx === messages.length - 1 && isGenerating ? 'typewriter-cursor' : ''
+                    }`}>
+                      {msg.content}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
             <div ref={chatEndRef} />
           </div>
 
-          {/* 底部统计 */}
-          {fullAssistantText && !isGenerating && (
+          {/* 底部栏 */}
+          {charCount > 0 && (
             <div className="px-5 py-2 border-t border-[var(--border)] flex justify-between items-center">
               <span className="text-xs text-[var(--text-secondary)] opacity-50">
-                {fullAssistantText.length} 字
+                共 {charCount} 字
               </span>
-              <button
-                onClick={handleStart}
-                className="text-xs text-[var(--accent)] hover:underline"
-              >
-                重新开始
-              </button>
+              {!isGenerating && (
+                <button
+                  onClick={handleStart}
+                  className="text-xs text-[var(--accent)] hover:underline"
+                >
+                  重新开始
+                </button>
+              )}
             </div>
           )}
 
