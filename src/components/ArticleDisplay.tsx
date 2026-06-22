@@ -64,6 +64,7 @@ export default function ArticleDisplay() {
   const fullAssistantText = useMemo(() => {
     return messages
       .filter((m) => m.role === 'assistant' && m.content.length > 0)
+      .map((m) => m.content)
       .join('\n\n')
   }, [messages])
 
@@ -104,6 +105,7 @@ export default function ArticleDisplay() {
         const allMsgs = useAppStore.getState().messages
         const assistantText = allMsgs
           .filter((m) => m.role === 'assistant' && m.content.length > 0)
+          .map((m) => m.content)
           .join('\n\n')
         if (assistantText) {
           addHistory({
@@ -161,6 +163,7 @@ export default function ArticleDisplay() {
         const updatedMsgs = useAppStore.getState().messages
         const assistantText = updatedMsgs
           .filter((m) => m.role === 'assistant' && m.content.length > 0)
+          .map((m) => m.content)
           .join('\n\n')
         if (assistantText) {
           addHistory({
