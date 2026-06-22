@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect, useState, useMemo } from 'react'
 import { useAppStore, type ChatMessage } from '@/store/useAppStore'
 import { streamGenerate, type ChatMessageApi } from '@/utils/api'
+import { QuoteProcessor } from '@/utils/quoteProcessor'
 import { Mic, Square, Copy, Check, Send, Trash2 } from 'lucide-react'
 
 export default function ArticleDisplay() {
@@ -21,6 +22,7 @@ export default function ArticleDisplay() {
   const abortRef = useRef<AbortController | null>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const quoteProcessorRef = useRef(new QuoteProcessor())
   const [copied, setCopied] = useState(false)
   const [followUp, setFollowUp] = useState('')
 
@@ -69,6 +71,7 @@ export default function ArticleDisplay() {
     if (!apiKey || !currentTopic.trim()) return
 
     clearMessages()
+    quoteProcessorRef.current.reset()
     const userMsg: ChatMessage = { role: 'user', content: currentTopic.trim() }
     addMessage(userMsg)
     addMessage({ role: 'assistant', content: '' })
@@ -82,9 +85,22 @@ export default function ArticleDisplay() {
       apiKey,
       currentStyle,
       apiMessages,
-      (chunk) => appendLastAssistant(chunk),
+      (chunk) => {
+        const processed = quoteProcessorRef.current.process(chunk)
+        appendLastAssistant(processed)
+      },
       () => {
         setIsGenerating(false)
+        // 最终清理：修复空「」和不配对引号
+        const msgs = useAppStore.getState().messages
+        const lastIdx = msgs.length - 1
+        if (lastIdx >= 0 && msgs[lastIdx].role === 'assistant') {
+          const cleaned = QuoteProcessor.cleanup(msgs[lastIdx].content)
+          const updated = [...msgs]
+          updated[lastIdx] = { ...updated[lastIdx], content: cleaned }
+          useAppStore.setState({ messages: updated })
+          useAppStore.getState().flushMessages()
+        }
         const allMsgs = useAppStore.getState().messages
         const assistantText = allMsgs
           .filter((m) => m.role === 'assistant' && m.content.length > 0)
@@ -126,9 +142,22 @@ export default function ArticleDisplay() {
       apiKey,
       currentStyle,
       apiMessages,
-      (chunk) => appendLastAssistant(chunk),
+      (chunk) => {
+        const processed = quoteProcessorRef.current.process(chunk)
+        appendLastAssistant(processed)
+      },
       () => {
         setIsGenerating(false)
+        // 最终清理
+        const msgs = useAppStore.getState().messages
+        const lastIdx = msgs.length - 1
+        if (lastIdx >= 0 && msgs[lastIdx].role === 'assistant') {
+          const cleaned = QuoteProcessor.cleanup(msgs[lastIdx].content)
+          const updated = [...msgs]
+          updated[lastIdx] = { ...updated[lastIdx], content: cleaned }
+          useAppStore.setState({ messages: updated })
+          useAppStore.getState().flushMessages()
+        }
         const updatedMsgs = useAppStore.getState().messages
         const assistantText = updatedMsgs
           .filter((m) => m.role === 'assistant' && m.content.length > 0)
